@@ -1,0 +1,232 @@
+/*
+ * dsh-gaussian-blur visual layer. All selectors key on the plugin's own
+ * data-gb-* markers or the framework's stable data-* hooks (never hashed
+ * CSS-module classes), and all colors come from --dsw-* theme tokens, so the
+ * effect follows the active light/dark theme.
+ *
+ * Chromium notes:
+ * - `backdrop-filter` must be the STANDARD property only: the -webkit-
+ *   prefixed spelling is ignored by Chromium, and letting the build
+ *   minifier collapse the pair onto the prefixed one silently disables the
+ *   blur. It must also not be combined with mask-image (the layer would not
+ *   render at all).
+ * - backdrop-filter is binary per element, so the edge fades render as a
+ *   graduated stack of step-down blur strips (built by the enhancer); the
+ *   color gradients below only carry the tint falloff, which stays
+ *   continuous across the stack.
+ */
+
+/* ---- Sidebar: composer-card-like rounded card ---- */
+
+[data-gb-sidebar-col] {
+  /* Float the column off the window edge so the radius reads as a card. */
+  margin: 8px;
+  border-radius: 22px;
+  border: 1px solid var(--dsw-alias-border-l2);
+  box-shadow: var(--dsw-shadow-lv2);
+  background: var(--dsw-alias-bg-base);
+  overflow: hidden;
+}
+
+/* The sidebar root paints its own stock fill; match the header card. */
+[data-gb-sidebar-root] {
+  background: var(--dsw-alias-bg-base);
+}
+
+/* Wide mode: the sidebar root carries an inline width equal to the grid
+   track, which overflows the inset card and clips the right edge (toggle
+   icon, timestamps, scrollbar). Fit it to the card so both sides keep a
+   symmetric inset, and lift the brand row so the wordmark hugs the card's
+   top rounded corner (everything below shifts up with it). */
+div:has(> [data-shell-overlay]):not([data-sidebar-collapsed]) [data-gb-sidebar-root] {
+  width: auto !important;
+  padding-top: 0;
+}
+
+div:has(> [data-shell-overlay]):not([data-sidebar-collapsed]) [data-gb-sidebar-root] > :first-child {
+  height: 48px;
+  margin-bottom: 4px;
+}
+
+/* Rail mode: the collapsed rail needs the whole 56px track for its 36px
+   buttons plus 20px of padding, so the card drops its side insets/borders
+   and reads as a pill hugging the window edge. */
+div:has(> [data-shell-overlay])[data-sidebar-collapsed] [data-gb-sidebar-col] {
+  margin: 8px 0;
+  border-left: none;
+  border-right: none;
+  border-radius: 0 22px 22px 0;
+}
+
+/* ---- Sidebar workspace: progressive blur fades on the tree edges ----
+   (rendered by the enhancer's body-level fade stacks; the scrollport only
+   needs to be a positioning context for measurements) */
+
+[data-gb-sidebar-scrollport] {
+  position: relative;
+}
+
+/* ---- Conversation: root becomes the positioning context for the glass ---- */
+
+[data-gb-root] {
+  position: relative;
+}
+
+/* The header floats over the scroller, so the scroller reserves its own
+   top band (--dsh-gb-header-bottom, published by the enhancer) to keep the
+   first message below the card at rest; scrolled content can rise through
+   the band to the browser's top edge. */
+[data-gb-root] [data-conversation-scroll] {
+  padding-top: var(--dsh-gb-header-bottom, 0px);
+}
+
+/* ---- Top bar: rounded floating glass card ---- */
+
+[data-gb-header] {
+  /* Absolute: the card floats OVER the scroller (the slot wrapper is
+     display:contents, so the conversation column now reaches the browser's
+     top edge and scrolls beneath the card). Positioned above the top edge
+     fade (z-index 5). */
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 6;
+  /* Hug the content instead of stretching: the rounded corners wrap the
+     session name / preset / tabs exactly. */
+  width: fit-content;
+  max-width: calc(100% - 144px);
+  margin: 0;
+  border-radius: 22px;
+  background: transparent;
+  box-shadow: var(--dsw-shadow-lv2);
+}
+
+/* The glass face: a translucent blurred layer behind the card's content.
+   It lives on the ::before (NOT on the header itself) so the header carries
+   no backdrop-filter — that property would become the containing block for
+   the fixed utilities pill below and drag it out of the viewport corner. */
+[data-gb-header]::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  border: 1px solid var(--dsw-alias-border-l2);
+  background: color-mix(in srgb, var(--dsw-alias-bg-base) 78%, transparent);
+  backdrop-filter: blur(var(--dsh-gb-card-blur, 18px)) saturate(160%);
+}
+
+[data-gb-header]::after {
+  display: none;
+}
+
+/* The session-log-download utilities float as a symmetric pill on the
+   right, sharing the same top inset and card language. Fixed against the
+   viewport (not the header) so the card's fit-content width never drags
+   the pill along. */
+[data-gb-header] > div:first-child > div:last-child {
+  position: fixed;
+  top: 8px;
+  right: 8px;
+  margin: 0;
+  z-index: 3;
+}
+
+[data-gb-header] > div:first-child > div:last-child button:first-child {
+  background: var(--dsw-alias-bg-base);
+  border-radius: 16px;
+  box-shadow: var(--dsw-shadow-lv2);
+}
+
+/* ---- Pure-color edge fades (body-level overlays from the enhancer) --------
+   NO backdrop-filter anywhere on the fades: blur was dropped there entirely
+   (Chromium's subpixel text fringing could not be cleaned up). Each edge is
+   one plain div with a solid-to-transparent background gradient in the
+   user-specified direction:
+   - top fade: solid at the very TOP browser edge, dissolving over the
+     floating card's band — text under the frosted card melts toward the
+     edge and disappears exactly there;
+   - bottom fades: solid at the very BOTTOM browser edge, dissolving
+     upward past the composer band (the seat rides ABOVE the fade).
+   - z-index 5: above the scrolling content, but BELOW every floating UI
+     piece (header card and composer seat use 6/7, the connection banner
+     uses 6, the scroll-to-bottom indicator uses 8).
+   - pointer-events: none — clicks always pass through. */
+
+[data-gb-fade-top],
+[data-gb-fade-bottom],
+[data-gb-fade-sidebar-top],
+[data-gb-fade-sidebar-bottom] {
+  position: fixed;
+  z-index: 5;
+  pointer-events: none;
+  overflow: hidden;
+  opacity: 0;
+  transition: opacity 180ms var(--ds-ease-in-out);
+}
+
+[data-gb-fade-top],
+[data-gb-fade-sidebar-top] {
+  background: linear-gradient(to bottom, var(--dsw-alias-bg-base), transparent);
+}
+
+[data-gb-fade-bottom],
+[data-gb-fade-sidebar-bottom] {
+  background: linear-gradient(to top, var(--dsw-alias-bg-base), transparent);
+}
+
+/* ---- Bottom bar: the composer band floats over the scrollport ---- */
+
+[data-composer-seat] {
+  /* In active mode the stock UI already keeps the seat sticky at the
+     viewport bottom (content scrolls underneath); hero mode rests it at
+     the bottom naturally. The plugin adds the click-through and pins the
+     band above the bottom edge fade (z-index 5), so the fade's solid end
+     melts up toward the seat instead of tinting it. */
+  pointer-events: none;
+  z-index: 7;
+}
+
+/* Extend the stock 36px fade so messages melt into the glass bar: solid
+   under the card, barely tinted at the very top (the fade stack's own tint
+   curve does the progressive frosting). The selector matches the stock
+   active-state rule's specificity (later layer wins). */
+[data-gb-root][data-phase='active'] [data-composer-seat] {
+  background: linear-gradient(to top,
+    var(--dsw-alias-bg-base) 0%,
+    color-mix(in srgb, var(--dsw-alias-bg-base) 82%, transparent) 45%,
+    color-mix(in srgb, var(--dsw-alias-bg-base) 12%, transparent) 100%);
+}
+
+[data-composer-seat] > * {
+  pointer-events: auto;
+}
+
+/* ---- Composer card: uniform frosted glass, no halo, no gradient ---- */
+
+[data-composer-card] {
+  /* Radius driven by the General-settings slider (--dsh-gb-card-blur);
+     the fallback is the default 60 → 18px. */
+  backdrop-filter: blur(var(--dsh-gb-card-blur, 18px)) saturate(160%);
+  background: color-mix(in srgb, var(--dsw-specific-input-major) 84%, transparent);
+  box-shadow: var(--dsw-shadow-lv2);
+}
+
+/* ---- Conversation content reaches the browser's bottom edge ---- */
+
+[data-gb-chat-viewport] {
+  /* The scroller's content is allowed to slide down beneath the glass band,
+     so the last message ends up at the very bottom of the window. */
+  padding-bottom: 24px;
+}
+
+/* ---- Motion ---- */
+
+@media (prefers-reduced-motion: reduce) {
+  [data-gb-fade-top],
+  [data-gb-fade-bottom],
+  [data-gb-fade-sidebar-top],
+  [data-gb-fade-sidebar-bottom] {
+    transition: none;
+  }
+}

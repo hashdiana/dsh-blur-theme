@@ -1,0 +1,58 @@
+/* dsh-gaussian-blur settings row: mirrors the shipped General-section row
+   (title/description + control), styled exclusively through --dsw-* theme
+   tokens. The slider is the native range input with the theme accent. */
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--dsw-alias-border-l2);
+}
+
+.rowText {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+  padding-right: 24px;
+}
+
+.title {
+  color: var(--dsw-alias-label-primary);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 22px;
+}
+
+.desc {
+  color: var(--dsw-alias-label-tertiary);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+}
+
+.sliderWrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: none;
+}
+
+.slider {
+  width: 168px;
+  height: 20px;
+  margin: 0;
+  cursor: pointer;
+  accent-color: var(--dsw-alias-state-business-primary);
+}
+
+.sliderValue {
+  min-width: 44px;
+  text-align: right;
+  color: var(--dsw-alias-label-secondary);
+  font-size: 13px;
+  line-height: 20px;
+  font-variant-numeric: tabular-nums;
+}

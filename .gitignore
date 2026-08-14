@@ -1,0 +1,9 @@
+# dependencies
+node_modules/
+
+# tsc incremental build cache
+*.tsbuildinfo
+
+# logs / OS noise
+*.log
+.DS_Store
