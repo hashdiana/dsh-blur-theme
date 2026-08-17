@@ -206,10 +206,18 @@ div:has(> [data-shell-overlay])[data-sidebar-collapsed] [data-gb-sidebar-col] {
 
 [data-composer-card] {
   /* Radius driven by the General-settings slider (--dsh-gb-card-blur);
-     the fallback is the default 60 → 18px. */
+     the fallback is the default 60 → 18px. The fill shares the sidebar
+     card's base tone (not the brighter input-major), so every glass
+     surface reads as one family. */
   backdrop-filter: blur(var(--dsh-gb-card-blur, 18px)) saturate(160%);
-  background: color-mix(in srgb, var(--dsw-specific-input-major) 84%, transparent);
+  background: color-mix(in srgb, var(--dsw-alias-bg-base) 84%, transparent);
   box-shadow: var(--dsw-shadow-lv2);
+}
+
+/* ---- Sidebar new-session pill: same background as the card ---- */
+
+[data-gb-sidebar-root] > button {
+  background: var(--dsw-alias-bg-base);
 }
 
 /* ---- Conversation content reaches the browser's bottom edge ---- */
