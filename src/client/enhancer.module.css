@@ -49,12 +49,13 @@ div:has(> [data-shell-overlay]):not([data-sidebar-collapsed]) [data-gb-sidebar-r
 }
 
 /* Rail mode: the collapsed rail needs the whole 56px track for its 36px
-   buttons plus 20px of padding, so the card drops its side insets/borders
-   and reads as a pill hugging the window edge. */
+   buttons plus 20px of padding, so the card drops its side insets and reads
+   as a pill hugging the window edge — flush at the top and left (no downward
+   shift), square on the left, rounded with its outline kept on the right. */
 div:has(> [data-shell-overlay])[data-sidebar-collapsed] [data-gb-sidebar-col] {
-  margin: 8px 0;
+  margin: 0;
   border-left: none;
-  border-right: none;
+  border-right: 1px solid var(--dsw-alias-border-l2);
   border-radius: 0 22px 22px 0;
 }
 
@@ -118,6 +119,18 @@ div:has(> [data-shell-overlay])[data-sidebar-collapsed] [data-gb-sidebar-col] {
 
 [data-gb-header]::after {
   display: none;
+}
+
+/* The code-block title bar (language + copy) is sticky at the scrollport's
+   top edge. Sticky offsets are measured from the scrollport's CONTENT box,
+   so with our reserved header band (padding-top: 92px) the app's own
+   top: 0 already sticks 8px below the floating card — exactly the stock
+   look. What breaks is its z-index: 6, which ties the card and paints over
+   it (later DOM). Demote it below the card.
+   :global() — this CSS Module would otherwise hash the app's class name. */
+:global(.md-code-block) > [class*="bannerWrap"] {
+  top: 0;
+  z-index: 5;
 }
 
 /* The session-log-download utilities float as a symmetric pill on the
