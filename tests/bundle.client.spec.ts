@@ -32,9 +32,9 @@ describe('built client bundle', () => {
     expect(Array.isArray(bundle.inject)).toBe(true)
 
     const ctx = new Context()
-    // Base service stubs the bundle's inject requires; the settings child
-    // fiber stays pending without a settings surface (proven separately).
-    ctx.provide('locale', { register: () => {} } as never)
+    // Base service stubs the bundle's inject requires; the settings row
+    // registers through the slot registry with a browser-local store.
+    ctx.provide('locale', { register: () => {}, bind: () => () => '' } as never)
     ctx.provide('slots', { inject: () => {}, register: () => () => {} } as never)
     const fiber = ctx.plugin({ inject: [...bundle.inject], apply: bundle.apply })
     await fiber.await()

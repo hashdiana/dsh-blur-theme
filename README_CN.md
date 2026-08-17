@@ -62,7 +62,7 @@
 | 对话区上边缘 | 内容穿过磨砂头部一直滚到浏览器顶边，实色贴顶边的渐隐让它恰好在顶边消失 |
 | 对话区下边缘 | 内容延伸到浏览器底边，实色贴底边的渐隐让它向上融进输入带 |
 | 输入卡片 | 整面均匀磨砂玻璃（模糊 + 饱和 + 半透明底），无光晕 |
-| 设置 | 常规设置新增「悬浮卡片高斯模糊」滑块行，经 `dsh-settings` 持久化 |
+| 设置 | 常规设置新增「悬浮卡片高斯模糊」滑块行，持久化于浏览器本地存储 |
 
 ## 安装
 
@@ -110,7 +110,7 @@ client bundle 输出为 `window.__ModuleLoader__.load({ id, factory })`；CSS Mo
 
 ## 实现原理
 
-- **纯 client 插件** —— host 半边只注册持久化的模糊设置（`dsh-settings`，schema 来自 `@deepseek-ai/schemastery`）；浏览器半边通过 `exports["./client"]` 下发。
+- **纯 client 插件** —— host 半边注册插件的设置命名空间 schema（前向兼容：目前 Web 设置通道只对框架白名单内的命名空间开放，所以浏览器半边把偏好持久化在浏览器本地存储）；视觉面通过 `exports["./client"]` 下发。
 - **只锚定稳定钩子** —— 锚点全部来自官方 UI 的稳定 `data-*` 属性（`data-shell-overlay`、`data-conversation-scroll`、`data-composer-seat` / `data-composer-card`、`div[data-phase]`、`[role="tree"]`）；enhancer 打上自己的 `data-gb-*` 标记（自动穿透 slot 的 `display: contents` 包裹层），一张样式表完成全部视觉效果，不耦合任何哈希类名。
 - **body 级渐隐层** —— 边缘渐隐是挂在 `document.body` 上的 `position: fixed` 覆盖层（React 不会触碰 body 子节点），纯实色→透明渐变，`pointer-events: none`，`z-index: 5` 低于所有悬浮控件。
 - **磨砂却不拖坏浮贴** —— 头部卡的 `backdrop-filter` 放在 `::before` 图层上；若直接放在卡片元素上，Chromium 会把它变成右侧 fixed 浮贴的包含块，把浮贴拽进卡片里。

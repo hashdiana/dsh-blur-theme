@@ -62,7 +62,7 @@ The shipped web UI keeps every bar opaque and every edge hard. **dsh-gaussian-bl
 | Conversation top edge | Content scrolls under the frosted header to the browser's top edge; a solid-at-edge gradient melts it exactly there |
 | Conversation bottom edge | Content extends to the browser's bottom edge; a solid-at-bottom gradient melts it up into the composer band |
 | Composer card | Uniform frosted glass (blur + saturate + translucent fill), no halo |
-| Settings | *悬浮卡片高斯模糊* slider row in General settings, persisted via `dsh-settings` |
+| Settings | *悬浮卡片高斯模糊* slider row in General settings, persisted in browser storage |
 
 ## Install
 
@@ -110,7 +110,7 @@ The client bundle is emitted as `window.__ModuleLoader__.load({ id, factory })`;
 
 ## How it works
 
-- **Pure client plugin** — the host half registers the persisted blur setting (`dsh-settings`, schema via `@deepseek-ai/schemastery`); the browser half ships via `exports["./client"]`.
+- **Pure client plugin** — the host half registers the plugin's settings namespace schema (forward-compatible: the web settings wire only serves framework allow-listed namespaces today, so the browser half persists the preference in a browser-local store); the visual surface ships via `exports["./client"]`.
 - **Stable hooks only** — anchors come from the shipped UI's stable `data-*` attributes (`data-shell-overlay`, `data-conversation-scroll`, `data-composer-seat`/`data-composer-card`, `div[data-phase]`, `[role="tree"]`); the enhancer stamps its own `data-gb-*` markers (walking through slot `display: contents` wrappers) and one stylesheet does all the visual work. No hashed class names.
 - **Body-level fades** — the edge melts are `position: fixed` overlays appended to `document.body` (React never touches body children), pure solid→transparent gradients, `pointer-events: none`, `z-index: 5` below every floating control.
 - **Glass without breaking the pill** — the header's backdrop-filter lives on a `::before` layer; if it sat on the card itself, Chromium would make it the containing block for the fixed utilities pill and drag it out of the viewport corner.

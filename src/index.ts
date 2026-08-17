@@ -1,8 +1,10 @@
 /**
- * dsh-gaussian-blur node half: registers the durable settings namespace
- * (`dsh-gaussian-blur`) that carries the composer-card blur preference,
- * through the optional host `settings` service. The visual browser surface
- * ships via exports["./client"].
+ * dsh-gaussian-blur node half: registers the `dsh-gaussian-blur` settings
+ * namespace schema (the card-blur preference). The browser half persists the
+ * preference locally today — the web API proxy only serves allow-listed
+ * settings namespaces, so this registration is forward-compatible: it lights
+ * up as soon as the framework exposes third-party namespaces to configuration
+ * clients. The visual browser surface ships via exports["./client"].
  * @module dsh-gaussian-blur
  */
 

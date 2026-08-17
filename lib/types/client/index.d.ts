@@ -7,18 +7,19 @@
  * order. Everything is idempotent, re-runs when React replaces nodes, and
  * unwinds completely on fiber dispose (HMR-safe).
  *
- * The General-settings row for the composer-card blur strength mounts on an
- * optional `settingsScope` fiber: without the settings surface the visual
- * enhancer still activates and the CSS fallback radius applies.
+ * The General-settings row for the card blur strength registers on the
+ * `settings.general.item` slot and persists the preference through a
+ * browser-local store (see ./blurStore.ts for why the settings wire is not
+ * used) while the CSS fallback radius applies whenever the row is absent.
  * @module dsh-gaussian-blur/client
  */
 import type { ClientContext } from '@deepseek-ai/dsh-client-runtime/client';
 /** Services the always-on surface needs: the slot registry and the copy. */
 export declare const inject: string[];
 /**
- * Client plugin body: mount the DOM enhancer, then — when the settings
- * surface exists — project the durable blur preference onto the
- * `--dsh-gb-card-blur` variable and register the General-settings row.
+ * Client plugin body: mount the DOM enhancer, project the durable blur
+ * preference onto the `--dsh-gb-card-blur` variable, and register the
+ * General-settings row.
  * @param ctx - client root context.
  */
 export declare function apply(ctx: ClientContext): void;

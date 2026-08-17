@@ -2,9 +2,10 @@
 /**
  * dsh-gaussian-blur browser half on a real cordis Context: the enhancer rides
  * the plugin fiber (HMR safety — dispose withdraws every marker, reload
- * re-applies them), the settings surface is an optional child fiber, and the
- * node half registers its settings namespace only through an optional
- * settings provider.
+ * re-applies them), the settings row registers through the slot registry
+ * (browser-local preference store, no host surface required), and the node
+ * half registers its settings namespace only through an optional settings
+ * provider.
  */
 import { Context } from '@deepseek-ai/cordis'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -37,7 +38,7 @@ afterEach(() => { document.body.innerHTML = '' })
 /** Minimal service stubs the browser plugin's base inject requires. */
 async function boot() {
   const ctx = new Context()
-  ctx.provide('locale', { register: () => {} } as never)
+  ctx.provide('locale', { register: () => {}, bind: () => () => '' } as never)
   ctx.provide('slots', { inject: () => {}, register: () => () => {} } as never)
   const fiber = ctx.plugin({ inject: [...inject], apply })
   await fiber.await()
@@ -76,9 +77,9 @@ describe('dsh-gaussian-blur browser plugin', () => {
     expect(document.querySelector('#sidebarCol')?.hasAttribute(GB_SIDEBAR_COL)).toBe(true)
   })
 
-  it('stays pending (no crash) when the optional settings surface is absent', async () => {
-    // The boot stubs above already omit settingsScope; awaiting activation
-    // succeeds because the settings integration rides a child fiber.
+  it('stays active (no crash) without any host settings surface', async () => {
+    // The browser half needs only locale + slots; the preference store is
+    // browser-local, so no host settings service is ever required.
     const { fiber } = await boot()
     await fiber.await()
     expect(fiber.state).toBeGreaterThanOrEqual(2)
